@@ -48,19 +48,52 @@ export default function App() {
   }, []);
 
   const handleExport = useCallback(
-    async (format: 'markdown' | 'csv') => {
-      const res = await fetch(
-        `/api/export/${format}?date=${selectedDate}`
+    (format: 'markdown' | 'csv') => {
+      const todaySchedule = api.schedule.filter(
+        (s) => s.date === selectedDate
       );
-      const blob = await res.blob();
+      let content: string;
+      let filename: string;
+
+      if (format === 'markdown') {
+        const lines = [`# Daily Planner — ${selectedDate}`, '', '## Schedule', ''];
+        for (const entry of todaySchedule) {
+          lines.push(`- **${entry.startTime}–${entry.endTime}** ${entry.title} [${entry.category}]${entry.locked ? ' 🔒' : ''}`);
+        }
+        lines.push('', '## Tasks', '');
+        for (const task of api.tasks) {
+          const check = task.status === 'completed' ? 'x' : ' ';
+          lines.push(`- [${check}] ${task.title} (${task.category}, P${task.priority}, ${task.estimatedMinutes}m)`);
+        }
+        content = lines.join('\n');
+        filename = 'planner.md';
+      } else {
+        const lines = ['Title,Category,Priority,Duration,DueDate,Energy,Tags,Status'];
+        for (const task of api.tasks) {
+          lines.push([
+            `"${task.title}"`,
+            task.category,
+            task.priority,
+            task.estimatedMinutes,
+            task.dueDate || '',
+            task.energyLevel,
+            `"${(task.tags || []).join(',')}"`,
+            task.status,
+          ].join(','));
+        }
+        content = lines.join('\n');
+        filename = 'tasks.csv';
+      }
+
+      const blob = new Blob([content], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = format === 'markdown' ? 'planner.md' : 'tasks.csv';
+      a.download = filename;
       a.click();
       URL.revokeObjectURL(url);
     },
-    [selectedDate]
+    [selectedDate, api.schedule, api.tasks]
   );
 
   if (api.loading) {
