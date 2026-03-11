@@ -62,10 +62,24 @@ export const DEFAULT_CONFIG: ScheduleConfig = {
   lunchTime: '12:00',
 };
 
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  description?: string;
+  date: string; // ISO date string (YYYY-MM-DD)
+  startTime: string; // HH:MM
+  endTime: string; // HH:MM
+  recurrence?: RecurrenceRule;
+  color?: string; // hex color for display
+  location?: string;
+  createdAt: string;
+}
+
 export interface AppData {
   tasks: Task[];
   schedule: ScheduleEntry[];
   config: ScheduleConfig;
+  events: CalendarEvent[];
 }
 
 export interface WeeklySummary {

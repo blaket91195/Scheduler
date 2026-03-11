@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { Task, ScheduleEntry, ScheduleConfig, AppData } from '../types';
+import type { Task, ScheduleEntry, ScheduleConfig, AppData, CalendarEvent } from '../types';
 import { DEFAULT_CONFIG } from '../types';
 
 const STORAGE_KEY = 'daily-planner-data';
@@ -11,7 +11,7 @@ function loadFromStorage(): AppData {
   } catch {
     console.error('Failed to load from localStorage');
   }
-  return { tasks: [], schedule: [], config: DEFAULT_CONFIG };
+  return { tasks: [], schedule: [], config: DEFAULT_CONFIG, events: [] };
 }
 
 function saveToStorage(data: AppData) {
@@ -22,14 +22,15 @@ export function useApi() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [schedule, setSchedule] = useState<ScheduleEntry[]>([]);
   const [config, setConfig] = useState<ScheduleConfig>(DEFAULT_CONFIG);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Persist whenever state changes
   useEffect(() => {
     if (!loading) {
-      saveToStorage({ tasks, schedule, config });
+      saveToStorage({ tasks, schedule, config, events });
     }
-  }, [tasks, schedule, config, loading]);
+  }, [tasks, schedule, config, events, loading]);
 
   const loadAll = useCallback(async () => {
     setLoading(true);
@@ -37,6 +38,7 @@ export function useApi() {
     setTasks(data.tasks || []);
     setSchedule(data.schedule || []);
     setConfig(data.config || DEFAULT_CONFIG);
+    setEvents(data.events || []);
     setLoading(false);
   }, []);
 
@@ -98,10 +100,23 @@ export function useApi() {
     return importedTasks.length;
   }, []);
 
+  const addEvent = useCallback(async (event: CalendarEvent) => {
+    setEvents((prev) => [...prev, event]);
+  }, []);
+
+  const updateEvent = useCallback(async (event: CalendarEvent) => {
+    setEvents((prev) => prev.map((e) => (e.id === event.id ? event : e)));
+  }, []);
+
+  const deleteEvent = useCallback(async (id: string) => {
+    setEvents((prev) => prev.filter((e) => e.id !== id));
+  }, []);
+
   return {
     tasks,
     schedule,
     config,
+    events,
     loading,
     addTask,
     updateTask,
@@ -113,6 +128,9 @@ export function useApi() {
     deleteScheduleEntry,
     updateConfig,
     importTasks,
+    addEvent,
+    updateEvent,
+    deleteEvent,
     reload: loadAll,
   };
 }

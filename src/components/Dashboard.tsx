@@ -1,9 +1,11 @@
 import { useMemo } from 'react';
-import type { Task, ScheduleEntry, Category } from '../types';
+import type { Task, ScheduleEntry, Category, CalendarEvent } from '../types';
+import { getEventsForDate } from '../scheduler';
 
 interface Props {
   tasks: Task[];
   schedule: ScheduleEntry[];
+  events: CalendarEvent[];
   selectedDate: string;
 }
 
@@ -13,7 +15,7 @@ const CATEGORY_COLORS: Record<Category, string> = {
   fun: 'bg-fun',
 };
 
-export function Dashboard({ tasks, schedule, selectedDate }: Props) {
+export function Dashboard({ tasks, schedule, events, selectedDate }: Props) {
   const todaySchedule = useMemo(
     () => schedule.filter((s) => s.date === selectedDate),
     [schedule, selectedDate]
@@ -180,7 +182,38 @@ export function Dashboard({ tasks, schedule, selectedDate }: Props) {
         </div>
       </div>
 
-      {/* Today's Schedule */}
+      {/* Today's Events & Schedule */}
+      {(() => {
+        const dayEvents = getEventsForDate(events, selectedDate);
+        return dayEvents.length > 0 ? (
+          <div className="bg-surface border border-border rounded-xl p-5 mb-6">
+            <h3 className="text-sm font-medium text-text-muted mb-4">Today's Events</h3>
+            <div className="space-y-1.5">
+              {dayEvents
+                .sort((a, b) => a.startTime.localeCompare(b.startTime))
+                .map((event) => (
+                  <div
+                    key={event.id}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg"
+                  >
+                    <div
+                      className="w-2 h-2 rounded-full shrink-0"
+                      style={{ backgroundColor: event.color || '#8b5cf6' }}
+                    />
+                    <span className="text-xs text-text-muted font-mono w-24 shrink-0">
+                      {event.startTime} - {event.endTime}
+                    </span>
+                    <span className="text-sm flex-1">{event.title}</span>
+                    {event.location && (
+                      <span className="text-xs text-text-muted">{event.location}</span>
+                    )}
+                  </div>
+                ))}
+            </div>
+          </div>
+        ) : null;
+      })()}
+
       <div className="bg-surface border border-border rounded-xl p-5 mb-6">
         <h3 className="text-sm font-medium text-text-muted mb-4">Today's Schedule</h3>
         {todaySchedule.length === 0 ? (

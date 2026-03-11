@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import type { Task, ScheduleEntry, ScheduleConfig, Category } from '../types';
-import { generateSchedule, pushScheduleBack } from '../scheduler';
+import type { Task, ScheduleEntry, ScheduleConfig, Category, CalendarEvent } from '../types';
+import { generateSchedule, pushScheduleBack, getEventsForDate } from '../scheduler';
 import { PomodoroTimer } from './PomodoroTimer';
 
 interface Props {
@@ -9,23 +9,26 @@ interface Props {
   schedule: ScheduleEntry[];
   config: ScheduleConfig;
   selectedDate: string;
+  events: CalendarEvent[];
   saveSchedule: (date: string, entries: ScheduleEntry[]) => Promise<void>;
   updateScheduleEntry: (entry: ScheduleEntry) => Promise<void>;
   deleteScheduleEntry: (id: string) => Promise<void>;
 }
 
-const CATEGORY_BG: Record<Category | 'break', string> = {
+const CATEGORY_BG: Record<Category | 'break' | 'event', string> = {
   work: 'bg-work/20 border-work/40',
   personal: 'bg-personal/20 border-personal/40',
   fun: 'bg-fun/20 border-fun/40',
   break: 'bg-break/20 border-break/40',
+  event: 'bg-purple-500/20 border-purple-500/40',
 };
 
-const CATEGORY_DOT: Record<Category | 'break', string> = {
+const CATEGORY_DOT: Record<Category | 'break' | 'event', string> = {
   work: 'bg-work',
   personal: 'bg-personal',
   fun: 'bg-fun',
   break: 'bg-break',
+  event: 'bg-purple-500',
 };
 
 function timeToMin(t: string): number {
@@ -38,6 +41,7 @@ export function ScheduleView({
   schedule,
   config,
   selectedDate,
+  events,
   saveSchedule,
   updateScheduleEntry,
   deleteScheduleEntry,
@@ -72,15 +76,20 @@ export function ScheduleView({
 
   const totalScheduled = todaySchedule.filter((s) => s.taskId).length;
 
+  const dayEvents = useMemo(
+    () => getEventsForDate(events, selectedDate),
+    [events, selectedDate]
+  );
+
   const handlePlanDay = async () => {
-    const result = generateSchedule(tasks, schedule, config, selectedDate);
+    const result = generateSchedule(tasks, schedule, config, selectedDate, events);
     await saveSchedule(selectedDate, result.entries);
     setUnscheduledTasks(result.unscheduled);
   };
 
   const handleRegenerate = async () => {
     const lockedEntries = todaySchedule.filter((e) => e.locked);
-    const result = generateSchedule(tasks, lockedEntries, config, selectedDate);
+    const result = generateSchedule(tasks, lockedEntries, config, selectedDate, events);
     await saveSchedule(selectedDate, result.entries);
     setUnscheduledTasks(result.unscheduled);
   };
@@ -278,6 +287,45 @@ export function ScheduleView({
                 <div className="absolute left-0 right-0 top-0 border-t border-border/30" />
               </div>
             ))}
+
+            {/* Event blocks */}
+            {dayEvents.map((event) => {
+              const startMin = timeToMin(event.startTime);
+              const endMin = timeToMin(event.endTime);
+              const duration = endMin - startMin;
+              const top = (startMin - 7 * 60);
+              const height = Math.max(duration, 20);
+
+              return (
+                <div
+                  key={`event-${event.id}`}
+                  className="absolute left-0 right-0 rounded-lg border px-3 py-1.5 border-l-4 pointer-events-none"
+                  style={{
+                    top: `${top}px`,
+                    height: `${height}px`,
+                    minHeight: '24px',
+                    backgroundColor: `${event.color || '#8b5cf6'}20`,
+                    borderColor: `${event.color || '#8b5cf6'}66`,
+                    borderLeftColor: event.color || '#8b5cf6',
+                    zIndex: 5,
+                  }}
+                >
+                  <div className="flex items-center gap-2 h-full">
+                    <div
+                      className="w-2 h-2 rounded-full shrink-0"
+                      style={{ backgroundColor: event.color || '#8b5cf6' }}
+                    />
+                    <span className="text-sm font-medium truncate">{event.title}</span>
+                    <span className="text-xs text-text-muted shrink-0">
+                      {event.startTime} - {event.endTime}
+                    </span>
+                    {event.location && (
+                      <span className="text-xs text-text-muted shrink-0 truncate">{event.location}</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
 
             {/* Schedule blocks */}
             {todaySchedule.map((entry) => {

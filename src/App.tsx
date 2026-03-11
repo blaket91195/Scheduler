@@ -4,9 +4,10 @@ import { TaskPanel } from './components/TaskPanel';
 import { ScheduleView } from './components/ScheduleView';
 import { Dashboard } from './components/Dashboard';
 import { Settings } from './components/Settings';
+import { EventPanel } from './components/EventPanel';
 import { generateRecurringInstances } from './scheduler';
 
-type View = 'dashboard' | 'tasks' | 'schedule' | 'settings';
+type View = 'dashboard' | 'tasks' | 'schedule' | 'events' | 'settings';
 
 export default function App() {
   const api = useApi();
@@ -38,7 +39,8 @@ export default function App() {
       if (e.key === '1') setView('dashboard');
       if (e.key === '2') setView('tasks');
       if (e.key === '3') setView('schedule');
-      if (e.key === '4') setView('settings');
+      if (e.key === '4') setView('events');
+      if (e.key === '5') setView('settings');
       if (e.key === 'n' && !e.ctrlKey && !e.metaKey) {
         setView('tasks');
       }
@@ -108,7 +110,8 @@ export default function App() {
     { key: 'dashboard', label: 'Dashboard', shortcut: '1' },
     { key: 'tasks', label: 'Tasks', shortcut: '2' },
     { key: 'schedule', label: 'Schedule', shortcut: '3' },
-    { key: 'settings', label: 'Settings', shortcut: '4' },
+    { key: 'events', label: 'Events', shortcut: '4' },
+    { key: 'settings', label: 'Settings', shortcut: '5' },
   ];
 
   return (
@@ -166,6 +169,7 @@ export default function App() {
           <Dashboard
             tasks={api.tasks}
             schedule={api.schedule}
+            events={api.events}
             selectedDate={selectedDate}
           />
         )}
@@ -186,9 +190,18 @@ export default function App() {
             schedule={api.schedule}
             config={api.config}
             selectedDate={selectedDate}
+            events={api.events}
             saveSchedule={api.saveSchedule}
             updateScheduleEntry={api.updateScheduleEntry}
             deleteScheduleEntry={api.deleteScheduleEntry}
+          />
+        )}
+        {view === 'events' && (
+          <EventPanel
+            events={api.events}
+            addEvent={api.addEvent}
+            updateEvent={api.updateEvent}
+            deleteEvent={api.deleteEvent}
           />
         )}
         {view === 'settings' && (

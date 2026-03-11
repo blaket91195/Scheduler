@@ -3,6 +3,7 @@ import type {
   Task,
   ScheduleEntry,
   ScheduleConfig,
+  CalendarEvent,
 } from './types';
 
 function timeToMin(t: string): number {
@@ -92,11 +93,26 @@ const BUFFER = 10;
 const MAX_BLOCK = 90;
 const SLACK_PER_4H = 15;
 
+export function getEventsForDate(events: CalendarEvent[], date: string): CalendarEvent[] {
+  const directMatch = events.filter((e) => e.date === date);
+
+  // Also check recurring events
+  const recurringMatches = events.filter((e) => {
+    if (!e.recurrence || e.date === date) return false;
+    // Only recur on or after the original event date
+    if (date < e.date) return false;
+    return shouldRecur(e.recurrence, date);
+  });
+
+  return [...directMatch, ...recurringMatches];
+}
+
 export function generateSchedule(
   tasks: Task[],
   existingSchedule: ScheduleEntry[],
   config: ScheduleConfig,
-  date: string
+  date: string,
+  events: CalendarEvent[] = []
 ): { entries: ScheduleEntry[]; unscheduled: Task[] } {
   const lockedEntries = existingSchedule.filter(
     (e) => e.date === date && e.locked
@@ -105,6 +121,21 @@ export function generateSchedule(
   const weekend = isWeekend(date);
   const peakStart = timeToMin(config.peakStart);
   const peakEnd = timeToMin(config.peakEnd);
+
+  // Convert events for this date into locked schedule entries
+  const dayEvents = getEventsForDate(events, date);
+  for (const event of dayEvents) {
+    const eventEntry: ScheduleEntry = {
+      id: `event-${event.id}-${date}`,
+      title: event.title,
+      category: 'break', // events are treated as blocked time
+      startTime: event.startTime,
+      endTime: event.endTime,
+      locked: true,
+      date,
+    };
+    lockedEntries.push(eventEntry);
+  }
 
   // Filter to schedulable tasks
   const pendingTasks = tasks
