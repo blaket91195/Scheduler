@@ -290,14 +290,31 @@ export function TaskPanel({
         </div>
       )}
 
-      {/* Task List */}
-      <div className="space-y-2">
+      {/* Task List grouped by category */}
+      <div className="space-y-6">
         {filteredTasks.length === 0 && (
           <div className="text-center text-text-muted py-12">
             No tasks yet. Add one above!
           </div>
         )}
-        {filteredTasks.map((task) => (
+        {(['work', 'personal', 'fun'] as Category[]).map((cat) => {
+          const catTasks = filteredTasks.filter((t) => t.category === cat);
+          if (catTasks.length === 0) return null;
+          const catColors = {
+            work: 'text-blue-400 border-blue-500/30',
+            personal: 'text-orange-400 border-orange-500/30',
+            fun: 'text-purple-400 border-purple-500/30',
+          };
+          return (
+            <div key={cat}>
+              <div className={`flex items-center gap-2 mb-2 pb-1 border-b ${catColors[cat]}`}>
+                <h3 className="text-sm font-semibold uppercase tracking-wide">
+                  {cat}
+                </h3>
+                <span className="text-xs opacity-60">{catTasks.length}</span>
+              </div>
+              <div className="space-y-2">
+                {catTasks.map((task) => (
           <div
             key={task.id}
             className={`flex items-center gap-3 bg-surface border border-border rounded-lg px-4 py-3 hover:bg-surface-hover transition-colors ${
@@ -386,7 +403,11 @@ export function TaskPanel({
               Delete
             </button>
           </div>
-        ))}
+                ))}
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Task Form Modal */}
