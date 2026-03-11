@@ -60,7 +60,11 @@ export function ImportModal({ onImport, onClose }: Props) {
 
         if (fields.length >= 1 && fields[0]) {
           const validCategories: Category[] = ['work', 'personal', 'fun'];
+          const validStatuses = ['pending', 'in-progress', 'completed', 'deferred'];
+          const validEnergy = ['high', 'medium', 'low'];
           const cat = fields[1]?.toLowerCase();
+          const statusVal = fields[7]?.toLowerCase().trim();
+          const energyVal = fields[5]?.toLowerCase().trim();
           tasks.push({
             id: uuidv4(),
             title: fields[0],
@@ -69,13 +73,16 @@ export function ImportModal({ onImport, onClose }: Props) {
               : 'personal',
             priority: (Math.min(5, Math.max(1, parseInt(fields[2]) || 3)) as Priority),
             estimatedMinutes: parseInt(fields[3]) || 30,
-            status: 'pending',
+            status: validStatuses.includes(statusVal)
+              ? (statusVal as Task['status'])
+              : 'pending',
             tags: fields[6] ? fields[6].split(',').map((t) => t.trim()).filter(Boolean) : [],
-            energyLevel: (['high', 'medium', 'low'].includes(fields[5]?.toLowerCase() || '')
-              ? fields[5].toLowerCase() as EnergyLevel
-              : 'medium'),
+            energyLevel: validEnergy.includes(energyVal || '')
+              ? (energyVal as EnergyLevel)
+              : 'medium',
             createdAt: new Date().toISOString(),
-            dueDate: fields[4] || undefined,
+            completedAt: statusVal === 'completed' ? new Date().toISOString() : undefined,
+            dueDate: fields[4]?.trim() || undefined,
           });
         }
       }
@@ -120,7 +127,7 @@ export function ImportModal({ onImport, onClose }: Props) {
           placeholder={
             format === 'markdown'
               ? '- [ ] Task one\n- [x] Task two (completed)\n- [ ] Task three'
-              : 'Title,Category,Priority,Duration,DueDate,Energy,Tags\nReview report,work,2,45,,high,client-work'
+              : 'Title,Category,Priority,Duration,DueDate,Energy,Tags,Status\nReview report,work,2,45,2026-03-12,high,client-work,pending'
           }
           className="w-full bg-bg border border-border rounded px-3 py-2 text-sm text-text font-mono placeholder:text-text-muted focus:outline-none focus:border-blue-500 resize-none"
         />
