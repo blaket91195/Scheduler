@@ -2,7 +2,6 @@ import { useState, useMemo, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import type { Task, ScheduleEntry, ScheduleConfig, Category, CalendarEvent } from '../types';
 import { generateSchedule, pushScheduleBack, getEventsForDate } from '../scheduler';
-import { PomodoroTimer } from './PomodoroTimer';
 
 interface Props {
   tasks: Task[];
@@ -13,6 +12,7 @@ interface Props {
   saveSchedule: (date: string, entries: ScheduleEntry[]) => Promise<void>;
   updateScheduleEntry: (entry: ScheduleEntry) => Promise<void>;
   deleteScheduleEntry: (id: string) => Promise<void>;
+  onStartPomodoro: (title: string) => void;
 }
 
 const CATEGORY_BG: Record<Category | 'break' | 'event', string> = {
@@ -45,6 +45,7 @@ export function ScheduleView({
   saveSchedule,
   updateScheduleEntry,
   deleteScheduleEntry,
+  onStartPomodoro,
 }: Props) {
   const [unscheduledTasks, setUnscheduledTasks] = useState<Task[]>([]);
   const [selectedEntry, setSelectedEntry] = useState<string | null>(null);
@@ -54,7 +55,6 @@ export function ScheduleView({
   const [customEnd, setCustomEnd] = useState('10:00');
   const [customCategory, setCustomCategory] = useState<Category | 'break'>('break');
   const [editEntry, setEditEntry] = useState<ScheduleEntry | null>(null);
-  const [pomodoroEntryId, setPomodoroEntryId] = useState<string | null>(null);
   const [draggedId, setDraggedId] = useState<string | null>(null);
 
   const todaySchedule = useMemo(
@@ -398,7 +398,7 @@ export function ScheduleView({
                         Edit
                       </button>
                       <button
-                        onClick={() => setPomodoroEntryId(entry.id)}
+                        onClick={() => onStartPomodoro(entry.title)}
                         className="text-xs px-2 py-1 rounded hover:bg-surface-hover text-text-muted"
                       >
                         Pomodoro
@@ -532,13 +532,6 @@ export function ScheduleView({
         </div>
       )}
 
-      {/* Pomodoro Timer */}
-      {pomodoroEntryId && (
-        <PomodoroTimer
-          entry={todaySchedule.find((e) => e.id === pomodoroEntryId)!}
-          onClose={() => setPomodoroEntryId(null)}
-        />
-      )}
     </div>
   );
 }

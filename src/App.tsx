@@ -5,6 +5,7 @@ import { ScheduleView } from './components/ScheduleView';
 import { Dashboard } from './components/Dashboard';
 import { Settings } from './components/Settings';
 import { EventPanel } from './components/EventPanel';
+import { PomodoroTimer } from './components/PomodoroTimer';
 import { generateRecurringInstances } from './scheduler';
 
 type View = 'dashboard' | 'tasks' | 'schedule' | 'events' | 'settings';
@@ -15,6 +16,7 @@ export default function App() {
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split('T')[0]
   );
+  const [pomodoroTitle, setPomodoroTitle] = useState<string | null>(null);
 
   // Generate recurring task instances on load
   useEffect(() => {
@@ -194,6 +196,7 @@ export default function App() {
             saveSchedule={api.saveSchedule}
             updateScheduleEntry={api.updateScheduleEntry}
             deleteScheduleEntry={api.deleteScheduleEntry}
+            onStartPomodoro={(title) => setPomodoroTitle(title)}
           />
         )}
         {view === 'events' && (
@@ -208,6 +211,14 @@ export default function App() {
           <Settings config={api.config} updateConfig={api.updateConfig} />
         )}
       </main>
+
+      {/* Global Pomodoro Timer */}
+      {pomodoroTitle && (
+        <PomodoroTimer
+          title={pomodoroTitle}
+          onClose={() => setPomodoroTitle(null)}
+        />
+      )}
     </div>
   );
 }

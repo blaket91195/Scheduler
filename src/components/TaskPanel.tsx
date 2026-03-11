@@ -53,7 +53,7 @@ export function TaskPanel({
   const [showImport, setShowImport] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [filterCategory, setFilterCategory] = useState<Category | 'all'>('all');
-  const [filterStatus, setFilterStatus] = useState<TaskStatus | 'all'>('all');
+  const [filterStatus, setFilterStatus] = useState<TaskStatus | 'all' | 'active'>('active');
   const [filterEnergy, setFilterEnergy] = useState<EnergyLevel | 'all'>('all');
   const [filterTag, setFilterTag] = useState('');
   const [sortBy, setSortBy] = useState<SortKey>('priority');
@@ -63,7 +63,9 @@ export function TaskPanel({
 
     if (filterCategory !== 'all')
       result = result.filter((t) => t.category === filterCategory);
-    if (filterStatus !== 'all')
+    if (filterStatus === 'active')
+      result = result.filter((t) => t.status !== 'completed');
+    else if (filterStatus !== 'all')
       result = result.filter((t) => t.status === filterStatus);
     if (filterEnergy !== 'all')
       result = result.filter((t) => t.energyLevel === filterEnergy);
@@ -210,9 +212,10 @@ export function TaskPanel({
         </select>
         <select
           value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value as TaskStatus | 'all')}
+          onChange={(e) => setFilterStatus(e.target.value as TaskStatus | 'all' | 'active')}
           className="bg-surface border border-border rounded px-2 py-1 text-sm text-text"
         >
+          <option value="active">Active (hide completed)</option>
           <option value="all">All Statuses</option>
           <option value="pending">Pending</option>
           <option value="in-progress">In Progress</option>
