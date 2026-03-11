@@ -48,6 +48,8 @@ export interface ScheduleConfig {
   peakStart: string;
   peakEnd: string;
   lunchTime: string;
+  dinnerTime: string;
+  dinnerDuration: number; // minutes
 }
 
 export const DEFAULT_CONFIG: ScheduleConfig = {
@@ -60,6 +62,8 @@ export const DEFAULT_CONFIG: ScheduleConfig = {
   peakStart: '09:00',
   peakEnd: '12:00',
   lunchTime: '12:00',
+  dinnerTime: '18:00',
+  dinnerDuration: 90,
 };
 
 export interface CalendarEvent {

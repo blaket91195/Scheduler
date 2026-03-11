@@ -26,6 +26,7 @@ export function Settings({ config, updateConfig }: Props) {
     { key: 'peakStart', label: 'Peak Start', group: 'Peak Energy' },
     { key: 'peakEnd', label: 'Peak End', group: 'Peak Energy' },
     { key: 'lunchTime', label: 'Lunch Time', group: 'Breaks' },
+    { key: 'dinnerTime', label: 'Dinner Time', group: 'Breaks' },
   ];
 
   const groups = [...new Set(fields.map((f) => f.group))];
@@ -59,6 +60,27 @@ export function Settings({ config, updateConfig }: Props) {
                     />
                   </div>
                 ))}
+              {group === 'Breaks' && (
+                <div>
+                  <label className="block text-xs text-text-muted mb-1">
+                    Dinner Duration (min)
+                  </label>
+                  <input
+                    type="number"
+                    min={15}
+                    max={120}
+                    step={15}
+                    value={localConfig.dinnerDuration}
+                    onChange={(e) =>
+                      setLocalConfig({
+                        ...localConfig,
+                        dinnerDuration: parseInt(e.target.value) || 90,
+                      })
+                    }
+                    className="w-full bg-bg border border-border rounded px-3 py-2 text-sm text-text"
+                  />
+                </div>
+              )}
             </div>
           </div>
         ))}

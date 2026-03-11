@@ -180,6 +180,26 @@ export function generateSchedule(
     }
   }
 
+  // Add dinner block
+  const dinnerStart = timeToMin(config.dinnerTime);
+  const dinnerEnd = dinnerStart + (config.dinnerDuration || 90);
+  const dinnerExists = lockedEntries.some(
+    (e) => e.title === 'Dinner' || (timeToMin(e.startTime) <= dinnerStart && timeToMin(e.endTime) >= dinnerEnd)
+  );
+  if (!dinnerExists) {
+    const dinnerEntry: ScheduleEntry = {
+      id: uuidv4(),
+      title: 'Dinner',
+      category: 'break',
+      startTime: minToTime(dinnerStart),
+      endTime: minToTime(dinnerEnd),
+      locked: true,
+      date,
+    };
+    result.push(dinnerEntry);
+    blocked.push({ start: dinnerStart, end: dinnerEnd });
+  }
+
   // Track slack time
   const slackNeeded = new Map<number, number>(); // slot start -> slack minutes remaining
   for (const slot of slots) {
