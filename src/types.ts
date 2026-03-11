@@ -1,6 +1,6 @@
 export type Category = 'work' | 'personal' | 'fun';
 export type Priority = 1 | 2 | 3 | 4 | 5;
-export type TaskStatus = 'pending' | 'in-progress' | 'completed' | 'deferred';
+export type TaskStatus = 'pending' | 'in-progress' | 'completed' | 'deferred' | 'cancelled';
 export type EnergyLevel = 'high' | 'medium' | 'low';
 export type RecurrenceRule =
   | 'daily'

@@ -36,6 +36,7 @@ const STATUS_COLORS: Record<TaskStatus, string> = {
   'in-progress': 'bg-blue-500/20 text-blue-400',
   completed: 'bg-green-500/20 text-green-400',
   deferred: 'bg-gray-500/20 text-gray-400',
+  cancelled: 'bg-red-500/20 text-red-400',
 };
 
 export function TaskPanel({
@@ -64,7 +65,7 @@ export function TaskPanel({
     if (filterCategory !== 'all')
       result = result.filter((t) => t.category === filterCategory);
     if (filterStatus === 'active')
-      result = result.filter((t) => t.status !== 'completed');
+      result = result.filter((t) => t.status !== 'completed' && t.status !== 'cancelled');
     else if (filterStatus !== 'all')
       result = result.filter((t) => t.status === filterStatus);
     if (filterEnergy !== 'all')
@@ -215,12 +216,13 @@ export function TaskPanel({
           onChange={(e) => setFilterStatus(e.target.value as TaskStatus | 'all' | 'active')}
           className="bg-surface border border-border rounded px-2 py-1 text-sm text-text"
         >
-          <option value="active">Active (hide completed)</option>
+          <option value="active">Active (hide completed/cancelled)</option>
           <option value="all">All Statuses</option>
           <option value="pending">Pending</option>
           <option value="in-progress">In Progress</option>
           <option value="completed">Completed</option>
           <option value="deferred">Deferred</option>
+          <option value="cancelled">Cancelled</option>
         </select>
         <select
           value={filterEnergy}
@@ -299,7 +301,7 @@ export function TaskPanel({
           <div
             key={task.id}
             className={`flex items-center gap-3 bg-surface border border-border rounded-lg px-4 py-3 hover:bg-surface-hover transition-colors ${
-              task.status === 'completed' ? 'opacity-60' : ''
+              task.status === 'completed' || task.status === 'cancelled' ? 'opacity-60' : ''
             }`}
           >
             <input
@@ -326,7 +328,7 @@ export function TaskPanel({
               <div className="flex items-center gap-2">
                 <span
                   className={`font-medium text-sm ${
-                    task.status === 'completed' ? 'line-through text-text-muted' : ''
+                    task.status === 'completed' || task.status === 'cancelled' ? 'line-through text-text-muted' : ''
                   }`}
                 >
                   {task.title}
