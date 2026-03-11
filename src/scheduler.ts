@@ -222,12 +222,16 @@ export function generateSchedule(
       slotTasks = [...personal, ...fun];
     }
 
-    // Also allow any category overdue/critical tasks
+    // Also allow critical/overdue tasks, but respect category-slot boundaries
+    // Work slots only get critical work tasks; evening/weekend get critical personal/fun
     const criticalOther = pendingTasks.filter(
       (t) =>
         !scheduled.has(t.id) &&
         t.effectivePriority <= 2 &&
-        !slotTasks.some((st) => st.id === t.id)
+        !slotTasks.some((st) => st.id === t.id) &&
+        (slot.type === 'work'
+          ? t.category === 'work'
+          : t.category === 'personal' || t.category === 'fun')
     );
     slotTasks = [...criticalOther, ...slotTasks];
 
