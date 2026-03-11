@@ -137,11 +137,13 @@ export function generateSchedule(
     lockedEntries.push(eventEntry);
   }
 
-  // Filter to schedulable tasks
+  // Filter to schedulable tasks (include deferred tasks whose due date has arrived)
   const pendingTasks = tasks
     .filter(
       (t) =>
-        t.status === 'pending' || t.status === 'in-progress'
+        t.status === 'pending' ||
+        t.status === 'in-progress' ||
+        (t.status === 'deferred' && t.dueDate && t.dueDate <= date)
     )
     .map((t) => ({ ...t, effectivePriority: getEffectivePriority(t, date) }))
     .sort((a, b) => {
