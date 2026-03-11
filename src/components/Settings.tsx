@@ -61,25 +61,46 @@ export function Settings({ config, updateConfig }: Props) {
                   </div>
                 ))}
               {group === 'Breaks' && (
-                <div>
-                  <label className="block text-xs text-text-muted mb-1">
-                    Dinner Duration (min)
-                  </label>
-                  <input
-                    type="number"
-                    min={15}
-                    max={120}
-                    step={15}
-                    value={localConfig.dinnerDuration}
-                    onChange={(e) =>
-                      setLocalConfig({
-                        ...localConfig,
-                        dinnerDuration: parseInt(e.target.value) || 90,
-                      })
-                    }
-                    className="w-full bg-bg border border-border rounded px-3 py-2 text-sm text-text"
-                  />
-                </div>
+                <>
+                  <div>
+                    <label className="block text-xs text-text-muted mb-1">
+                      Lunch Duration (min)
+                    </label>
+                    <input
+                      type="number"
+                      min={15}
+                      max={120}
+                      step={15}
+                      value={localConfig.lunchDuration}
+                      onChange={(e) =>
+                        setLocalConfig({
+                          ...localConfig,
+                          lunchDuration: parseInt(e.target.value) || 30,
+                        })
+                      }
+                      className="w-full bg-bg border border-border rounded px-3 py-2 text-sm text-text"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-text-muted mb-1">
+                      Dinner Duration (min)
+                    </label>
+                    <input
+                      type="number"
+                      min={15}
+                      max={120}
+                      step={15}
+                      value={localConfig.dinnerDuration}
+                      onChange={(e) =>
+                        setLocalConfig({
+                          ...localConfig,
+                          dinnerDuration: parseInt(e.target.value) || 90,
+                        })
+                      }
+                      className="w-full bg-bg border border-border rounded px-3 py-2 text-sm text-text"
+                    />
+                  </div>
+                </>
               )}
             </div>
           </div>

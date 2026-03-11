@@ -162,8 +162,9 @@ export function generateSchedule(
   // Add lunch for weekdays
   if (!weekend) {
     const lunchStart = timeToMin(config.lunchTime);
+    const lunchEnd = lunchStart + (config.lunchDuration || 30);
     const lunchExists = lockedEntries.some(
-      (e) => e.title === 'Lunch' || (timeToMin(e.startTime) <= lunchStart && timeToMin(e.endTime) >= lunchStart + 30)
+      (e) => e.title === 'Lunch' || (timeToMin(e.startTime) <= lunchStart && timeToMin(e.endTime) >= lunchEnd)
     );
     if (!lunchExists) {
       const lunchEntry: ScheduleEntry = {
@@ -171,12 +172,12 @@ export function generateSchedule(
         title: 'Lunch',
         category: 'break',
         startTime: minToTime(lunchStart),
-        endTime: minToTime(lunchStart + 30),
+        endTime: minToTime(lunchEnd),
         locked: true,
         date,
       };
       result.push(lunchEntry);
-      blocked.push({ start: lunchStart, end: lunchStart + 30 });
+      blocked.push({ start: lunchStart, end: lunchEnd });
     }
   }
 
