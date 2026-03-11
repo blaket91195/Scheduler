@@ -7,8 +7,9 @@ import type {
 } from './types';
 
 function timeToMin(t: string): number {
+  if (!t) return 0;
   const [h, m] = t.split(':').map(Number);
-  return h * 60 + m;
+  return h * 60 + (m || 0);
 }
 
 function minToTime(m: number): string {
