@@ -505,7 +505,20 @@ export function parseQuickAdd(input: string): Partial<Task> {
         d.setDate(d.getDate() + 1);
         result.dueDate = d.toISOString().split('T')[0];
       } else {
-        result.dueDate = val;
+        // Normalize date to YYYY-MM-DD format
+        const parsed = new Date(val + (val.includes('T') ? '' : 'T00:00:00'));
+        if (!isNaN(parsed.getTime())) {
+          result.dueDate = parsed.toISOString().split('T')[0];
+        } else {
+          // Try DD/MM/YYYY format
+          const ddmmyyyy = val.match(/^(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{4})$/);
+          if (ddmmyyyy) {
+            const [, dd, mm, yyyy] = ddmmyyyy;
+            result.dueDate = `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`;
+          } else {
+            result.dueDate = val;
+          }
+        }
       }
     } else if (part.startsWith('energy:')) {
       result.energyLevel = part.slice(7) as Task['energyLevel'];

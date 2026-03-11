@@ -48,6 +48,8 @@ export function ScheduleView({
   onStartPomodoro,
 }: Props) {
   const [unscheduledTasks, setUnscheduledTasks] = useState<Task[]>([]);
+  const [planning, setPlanning] = useState(false);
+  const [scheduleError, setScheduleError] = useState<string | null>(null);
   const [selectedEntry, setSelectedEntry] = useState<string | null>(null);
   const [showCustomBlock, setShowCustomBlock] = useState(false);
   const [customTitle, setCustomTitle] = useState('');
@@ -82,16 +84,42 @@ export function ScheduleView({
   );
 
   const handlePlanDay = async () => {
-    const result = generateSchedule(tasks, schedule, config, selectedDate, events);
-    await saveSchedule(selectedDate, result.entries);
-    setUnscheduledTasks(result.unscheduled);
+    try {
+      setPlanning(true);
+      setScheduleError(null);
+      const schedulableTasks = tasks.filter(
+        (t) => t.status === 'pending' || t.status === 'in-progress' || t.status === 'deferred'
+      );
+      if (schedulableTasks.length === 0) {
+        setScheduleError('No pending tasks to schedule.');
+        setPlanning(false);
+        return;
+      }
+      const result = generateSchedule(tasks, schedule, config, selectedDate, events);
+      await saveSchedule(selectedDate, result.entries);
+      setUnscheduledTasks(result.unscheduled);
+    } catch (err) {
+      console.error('Plan My Day error:', err);
+      setScheduleError(err instanceof Error ? err.message : 'Failed to generate schedule');
+    } finally {
+      setPlanning(false);
+    }
   };
 
   const handleRegenerate = async () => {
-    const lockedEntries = todaySchedule.filter((e) => e.locked);
-    const result = generateSchedule(tasks, lockedEntries, config, selectedDate, events);
-    await saveSchedule(selectedDate, result.entries);
-    setUnscheduledTasks(result.unscheduled);
+    try {
+      setPlanning(true);
+      setScheduleError(null);
+      const lockedEntries = todaySchedule.filter((e) => e.locked);
+      const result = generateSchedule(tasks, lockedEntries, config, selectedDate, events);
+      await saveSchedule(selectedDate, result.entries);
+      setUnscheduledTasks(result.unscheduled);
+    } catch (err) {
+      console.error('Regenerate error:', err);
+      setScheduleError(err instanceof Error ? err.message : 'Failed to regenerate schedule');
+    } finally {
+      setPlanning(false);
+    }
   };
 
   const handleToggleLock = async (entry: ScheduleEntry) => {
@@ -199,9 +227,10 @@ export function ScheduleView({
       <div className="flex flex-wrap items-center gap-3 mb-6">
         <button
           onClick={handlePlanDay}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+          disabled={planning}
+          className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm font-medium"
         >
-          Plan My Day
+          {planning ? 'Planning...' : 'Plan My Day'}
         </button>
         <button
           onClick={handleRegenerate}
@@ -245,6 +274,13 @@ export function ScheduleView({
           <span className="text-xs text-text-muted">
             P{suggestNextTask.priority} | {suggestNextTask.estimatedMinutes}m | {suggestNextTask.energyLevel} energy
           </span>
+        </div>
+      )}
+
+      {/* Error display */}
+      {scheduleError && (
+        <div className="mb-4 p-3 bg-red-600/10 border border-red-600/30 rounded-lg">
+          <p className="text-sm text-red-400 font-medium">Error: {scheduleError}</p>
         </div>
       )}
 
