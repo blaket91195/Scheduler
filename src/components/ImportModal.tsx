@@ -41,15 +41,23 @@ export function ImportModal({ onImport, onClose }: Props) {
       const hasHeader = lines[0]?.toLowerCase().includes('title');
       const dataLines = hasHeader ? lines.slice(1) : lines;
 
+      // Auto-detect delimiter: tab, comma, or semicolon
+      const firstDataLine = dataLines[0] || '';
+      const tabCount = (firstDataLine.match(/\t/g) || []).length;
+      const commaCount = (firstDataLine.match(/,/g) || []).length;
+      const semiCount = (firstDataLine.match(/;/g) || []).length;
+      const delimiter = tabCount >= commaCount && tabCount >= semiCount ? '\t'
+        : semiCount > commaCount ? ';' : ',';
+
       for (const line of dataLines) {
-        // Simple CSV parser (handles quoted fields)
+        // Delimited parser (handles quoted fields)
         const fields: string[] = [];
         let current = '';
         let inQuote = false;
         for (const char of line) {
           if (char === '"') {
             inQuote = !inQuote;
-          } else if (char === ',' && !inQuote) {
+          } else if (char === delimiter && !inQuote) {
             fields.push(current.trim());
             current = '';
           } else {
@@ -116,7 +124,7 @@ export function ImportModal({ onImport, onClose }: Props) {
               format === 'csv' ? 'bg-blue-600 text-white' : 'bg-surface-hover text-text-muted'
             }`}
           >
-            CSV
+            CSV / TSV
           </button>
         </div>
 
