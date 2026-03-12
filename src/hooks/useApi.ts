@@ -102,9 +102,24 @@ export function useApi() {
 
   const importAll = useCallback(
     async (data: { tasks?: Task[]; schedule?: ScheduleEntry[]; events?: CalendarEvent[] }) => {
-      if (data.tasks?.length) setTasks((prev) => [...prev, ...data.tasks!]);
-      if (data.schedule?.length) setSchedule((prev) => [...prev, ...data.schedule!]);
-      if (data.events?.length) setEvents((prev) => [...prev, ...data.events!]);
+      if (data.tasks?.length) {
+        setTasks((prev) => {
+          const existingIds = new Set(prev.map((t) => t.id));
+          return [...prev, ...data.tasks!.filter((t) => !existingIds.has(t.id))];
+        });
+      }
+      if (data.schedule?.length) {
+        setSchedule((prev) => {
+          const existingIds = new Set(prev.map((s) => s.id));
+          return [...prev, ...data.schedule!.filter((s) => !existingIds.has(s.id))];
+        });
+      }
+      if (data.events?.length) {
+        setEvents((prev) => {
+          const existingIds = new Set(prev.map((e) => e.id));
+          return [...prev, ...data.events!.filter((e) => !existingIds.has(e.id))];
+        });
+      }
     },
     []
   );
