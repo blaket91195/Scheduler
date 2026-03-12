@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import type { Task, Category, Priority, EnergyLevel, TaskStatus } from '../types';
+import type { Task, ScheduleEntry, CalendarEvent, Category, Priority, EnergyLevel, TaskStatus } from '../types';
 import { parseQuickAdd } from '../scheduler';
 import { TaskForm } from './TaskForm';
 import { ImportModal } from './ImportModal';
@@ -13,6 +13,7 @@ interface Props {
   bulkUpdateTasks: (ids: string[], updates: Partial<Task>) => Promise<void>;
   bulkDeleteTasks: (ids: string[]) => Promise<void>;
   importTasks: (tasks: Task[]) => Promise<number>;
+  importAll: (data: { tasks?: Task[]; schedule?: ScheduleEntry[]; events?: CalendarEvent[] }) => Promise<void>;
 }
 
 type SortKey = 'priority' | 'dueDate' | 'category' | 'createdAt' | 'energyLevel';
@@ -47,6 +48,7 @@ export function TaskPanel({
   bulkUpdateTasks,
   bulkDeleteTasks,
   importTasks,
+  importAll,
 }: Props) {
   const [quickAddInput, setQuickAddInput] = useState('');
   const [showForm, setShowForm] = useState(false);
@@ -450,6 +452,10 @@ export function TaskPanel({
         <ImportModal
           onImport={async (importedTasks) => {
             await importTasks(importedTasks);
+            setShowImport(false);
+          }}
+          onImportAll={async (data) => {
+            await importAll(data);
             setShowImport(false);
           }}
           onClose={() => setShowImport(false)}

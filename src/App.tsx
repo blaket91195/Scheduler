@@ -52,14 +52,21 @@ export default function App() {
   }, []);
 
   const handleExport = useCallback(
-    (format: 'markdown' | 'csv') => {
+    (format: 'markdown' | 'csv' | 'json') => {
       const todaySchedule = api.schedule.filter(
         (s) => s.date === selectedDate
       );
       let content: string;
       let filename: string;
 
-      if (format === 'markdown') {
+      if (format === 'json') {
+        content = JSON.stringify(
+          { tasks: api.tasks, schedule: api.schedule, events: api.events },
+          null,
+          2
+        );
+        filename = `planner-backup-${selectedDate}.json`;
+      } else if (format === 'markdown') {
         const lines = [`# Daily Planner — ${selectedDate}`, '', '## Schedule', ''];
         for (const entry of todaySchedule) {
           lines.push(`- **${entry.startTime}–${entry.endTime}** ${entry.title} [${entry.category}]${entry.locked ? ' 🔒' : ''}`);
@@ -68,6 +75,10 @@ export default function App() {
         for (const task of api.tasks) {
           const check = task.status === 'completed' ? 'x' : ' ';
           lines.push(`- [${check}] ${task.title} (${task.category}, P${task.priority}, ${task.estimatedMinutes}m)`);
+        }
+        lines.push('', '## Events', '');
+        for (const event of api.events) {
+          lines.push(`- **${event.startTime}–${event.endTime}** ${event.title} (${event.date})${event.recurrence ? ` [${typeof event.recurrence === 'string' ? event.recurrence : 'custom'}]` : ''}`);
         }
         content = lines.join('\n');
         filename = 'planner.md';
@@ -97,7 +108,7 @@ export default function App() {
       a.click();
       URL.revokeObjectURL(url);
     },
-    [selectedDate, api.schedule, api.tasks]
+    [selectedDate, api.schedule, api.tasks, api.events]
   );
 
   if (api.loading) {
@@ -162,6 +173,12 @@ export default function App() {
           >
             Export CSV
           </button>
+          <button
+            onClick={() => handleExport('json')}
+            className="text-xs text-text-muted hover:text-text px-2 py-1 rounded hover:bg-surface-hover"
+          >
+            Export JSON
+          </button>
         </div>
       </header>
 
@@ -184,6 +201,7 @@ export default function App() {
             bulkUpdateTasks={api.bulkUpdateTasks}
             bulkDeleteTasks={api.bulkDeleteTasks}
             importTasks={api.importTasks}
+            importAll={api.importAll}
           />
         )}
         {view === 'schedule' && (

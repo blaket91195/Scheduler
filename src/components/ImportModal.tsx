@@ -1,17 +1,36 @@
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import type { Task, Category, Priority, EnergyLevel } from '../types';
+import type { Task, ScheduleEntry, CalendarEvent, Category, Priority, EnergyLevel } from '../types';
 
 interface Props {
   onImport: (tasks: Task[]) => Promise<void>;
+  onImportAll: (data: { tasks?: Task[]; schedule?: ScheduleEntry[]; events?: CalendarEvent[] }) => Promise<void>;
   onClose: () => void;
 }
 
-export function ImportModal({ onImport, onClose }: Props) {
+export function ImportModal({ onImport, onImportAll, onClose }: Props) {
   const [text, setText] = useState('');
-  const [format, setFormat] = useState<'csv' | 'markdown'>('markdown');
+  const [format, setFormat] = useState<'csv' | 'markdown' | 'json'>('json');
 
   const handleImport = async () => {
+    if (format === 'json') {
+      try {
+        const data = JSON.parse(text);
+        const imported = {
+          tasks: Array.isArray(data.tasks) ? data.tasks : [],
+          schedule: Array.isArray(data.schedule) ? data.schedule : [],
+          events: Array.isArray(data.events) ? data.events : [],
+        };
+        const total = imported.tasks.length + imported.schedule.length + imported.events.length;
+        if (total > 0) {
+          await onImportAll(imported);
+        }
+      } catch {
+        alert('Invalid JSON format. Use the JSON file from Export JSON.');
+      }
+      return;
+    }
+
     const tasks: Task[] = [];
 
     if (format === 'markdown') {
@@ -111,6 +130,14 @@ export function ImportModal({ onImport, onClose }: Props) {
 
         <div className="flex gap-2 mb-3">
           <button
+            onClick={() => setFormat('json')}
+            className={`px-3 py-1 rounded text-sm ${
+              format === 'json' ? 'bg-blue-600 text-white' : 'bg-surface-hover text-text-muted'
+            }`}
+          >
+            JSON (Full Backup)
+          </button>
+          <button
             onClick={() => setFormat('markdown')}
             className={`px-3 py-1 rounded text-sm ${
               format === 'markdown' ? 'bg-blue-600 text-white' : 'bg-surface-hover text-text-muted'
@@ -128,12 +155,33 @@ export function ImportModal({ onImport, onClose }: Props) {
           </button>
         </div>
 
+        {format === 'json' && (
+          <div className="mb-3">
+            <label className="block text-xs text-text-muted mb-1">Or load from file:</label>
+            <input
+              type="file"
+              accept=".json"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  const reader = new FileReader();
+                  reader.onload = () => setText(reader.result as string);
+                  reader.readAsText(file);
+                }
+              }}
+              className="text-sm text-text-muted file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:bg-surface-hover file:text-text-muted file:cursor-pointer"
+            />
+          </div>
+        )}
+
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
           rows={10}
           placeholder={
-            format === 'markdown'
+            format === 'json'
+              ? '{\n  "tasks": [...],\n  "schedule": [...],\n  "events": [...]\n}\n\nPaste the contents of an Export JSON file here.'
+              : format === 'markdown'
               ? '- [ ] Task one\n- [x] Task two (completed)\n- [ ] Task three'
               : 'Title,Category,Priority,Duration,DueDate,Energy,Tags,Status\nReview report,work,2,45,2026-03-12,high,client-work,pending'
           }

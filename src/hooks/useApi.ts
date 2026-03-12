@@ -100,6 +100,15 @@ export function useApi() {
     return importedTasks.length;
   }, []);
 
+  const importAll = useCallback(
+    async (data: { tasks?: Task[]; schedule?: ScheduleEntry[]; events?: CalendarEvent[] }) => {
+      if (data.tasks?.length) setTasks((prev) => [...prev, ...data.tasks!]);
+      if (data.schedule?.length) setSchedule((prev) => [...prev, ...data.schedule!]);
+      if (data.events?.length) setEvents((prev) => [...prev, ...data.events!]);
+    },
+    []
+  );
+
   const addEvent = useCallback(async (event: CalendarEvent) => {
     setEvents((prev) => [...prev, event]);
   }, []);
@@ -128,6 +137,7 @@ export function useApi() {
     deleteScheduleEntry,
     updateConfig,
     importTasks,
+    importAll,
     addEvent,
     updateEvent,
     deleteEvent,
