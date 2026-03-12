@@ -353,9 +353,24 @@ export function TaskPanel({
                 <span className={`text-xs px-1.5 py-0.5 rounded ${CATEGORY_COLORS[task.category]}`}>
                   {task.category}
                 </span>
-                <span className={`text-xs px-1.5 py-0.5 rounded ${STATUS_COLORS[task.status]}`}>
-                  {task.status}
-                </span>
+                <select
+                  value={task.status}
+                  onChange={async (e) => {
+                    const newStatus = e.target.value as TaskStatus;
+                    await updateTask({
+                      ...task,
+                      status: newStatus,
+                      completedAt: newStatus === 'completed' ? new Date().toISOString() : task.completedAt,
+                    });
+                  }}
+                  className={`text-xs px-1.5 py-0.5 rounded cursor-pointer border-0 ${STATUS_COLORS[task.status]}`}
+                >
+                  <option value="pending">pending</option>
+                  <option value="in-progress">in-progress</option>
+                  <option value="deferred">deferred</option>
+                  <option value="completed">completed</option>
+                  <option value="cancelled">cancelled</option>
+                </select>
                 {task.tags.map((tag) => (
                   <span key={tag} className="text-xs px-1.5 py-0.5 rounded bg-surface-hover text-text-muted">
                     {tag}
