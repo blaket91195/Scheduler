@@ -14,6 +14,7 @@ interface Props {
   bulkDeleteTasks: (ids: string[]) => Promise<void>;
   importTasks: (tasks: Task[]) => Promise<number>;
   importAll: (data: { tasks?: Task[]; schedule?: ScheduleEntry[]; events?: CalendarEvent[] }, replace?: boolean) => Promise<void>;
+  deduplicateTasks: () => void;
 }
 
 type SortKey = 'priority' | 'dueDate' | 'category' | 'createdAt' | 'energyLevel';
@@ -49,6 +50,7 @@ export function TaskPanel({
   bulkDeleteTasks,
   importTasks,
   importAll,
+  deduplicateTasks,
 }: Props) {
   const [quickAddInput, setQuickAddInput] = useState('');
   const [showForm, setShowForm] = useState(false);
@@ -254,6 +256,16 @@ export function TaskPanel({
           <option value="createdAt">Sort: Newest</option>
           <option value="energyLevel">Sort: Energy</option>
         </select>
+        <button
+          onClick={() => {
+            if (confirm('Remove duplicate tasks (same title)? Keeps the version with the best date format.')) {
+              deduplicateTasks();
+            }
+          }}
+          className="text-xs text-text-muted hover:text-yellow-400 px-2 py-1 rounded hover:bg-surface-hover"
+        >
+          Deduplicate
+        </button>
         <span className="text-text-muted text-sm self-center ml-auto">
           {filteredTasks.length} task{filteredTasks.length !== 1 ? 's' : ''}
         </span>

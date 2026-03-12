@@ -202,6 +202,7 @@ export default function App() {
             bulkDeleteTasks={api.bulkDeleteTasks}
             importTasks={api.importTasks}
             importAll={api.importAll}
+            deduplicateTasks={api.deduplicateTasks}
           />
         )}
         {view === 'schedule' && (

@@ -130,6 +130,29 @@ export function useApi() {
     []
   );
 
+  const deduplicateTasks = useCallback(() => {
+    setTasks((prev) => {
+      const seen = new Map<string, Task>();
+      for (const task of prev) {
+        const key = task.title.toLowerCase().trim();
+        if (!seen.has(key)) {
+          seen.set(key, task);
+        } else {
+          // Keep the one with the ISO date format, or the earlier createdAt
+          const existing = seen.get(key)!;
+          const existingIsISO = existing.dueDate?.match(/^\d{4}-\d{2}-\d{2}$/);
+          const currentIsISO = task.dueDate?.match(/^\d{4}-\d{2}-\d{2}$/);
+          if (!existingIsISO && currentIsISO) {
+            seen.set(key, task);
+          } else if (existingIsISO === currentIsISO && task.createdAt < existing.createdAt) {
+            seen.set(key, task);
+          }
+        }
+      }
+      return Array.from(seen.values());
+    });
+  }, []);
+
   const addEvent = useCallback(async (event: CalendarEvent) => {
     setEvents((prev) => [...prev, event]);
   }, []);
@@ -159,6 +182,7 @@ export function useApi() {
     updateConfig,
     importTasks,
     importAll,
+    deduplicateTasks,
     addEvent,
     updateEvent,
     deleteEvent,
