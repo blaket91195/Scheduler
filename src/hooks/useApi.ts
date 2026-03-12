@@ -101,7 +101,13 @@ export function useApi() {
   }, []);
 
   const importAll = useCallback(
-    async (data: { tasks?: Task[]; schedule?: ScheduleEntry[]; events?: CalendarEvent[] }) => {
+    async (data: { tasks?: Task[]; schedule?: ScheduleEntry[]; events?: CalendarEvent[] }, replace?: boolean) => {
+      if (replace) {
+        setTasks(data.tasks || []);
+        setSchedule(data.schedule || []);
+        setEvents(data.events || []);
+        return;
+      }
       if (data.tasks?.length) {
         setTasks((prev) => {
           const existingIds = new Set(prev.map((t) => t.id));

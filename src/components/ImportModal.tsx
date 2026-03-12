@@ -4,7 +4,7 @@ import type { Task, ScheduleEntry, CalendarEvent, Category, Priority, EnergyLeve
 
 interface Props {
   onImport: (tasks: Task[]) => Promise<void>;
-  onImportAll: (data: { tasks?: Task[]; schedule?: ScheduleEntry[]; events?: CalendarEvent[] }) => Promise<void>;
+  onImportAll: (data: { tasks?: Task[]; schedule?: ScheduleEntry[]; events?: CalendarEvent[] }, replace?: boolean) => Promise<void>;
   onClose: () => void;
 }
 
@@ -193,8 +193,31 @@ export function ImportModal({ onImport, onImportAll, onClose }: Props) {
             onClick={handleImport}
             className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-sm font-medium"
           >
-            Import
+            {format === 'json' ? 'Merge (skip duplicates)' : 'Import'}
           </button>
+          {format === 'json' && (
+            <button
+              onClick={async () => {
+                try {
+                  const data = JSON.parse(text);
+                  const imported = {
+                    tasks: Array.isArray(data.tasks) ? data.tasks : [],
+                    schedule: Array.isArray(data.schedule) ? data.schedule : [],
+                    events: Array.isArray(data.events) ? data.events : [],
+                  };
+                  if (confirm('This will replace ALL existing tasks, schedules, and events with the imported data. Continue?')) {
+                    await onImportAll(imported, true);
+                    onClose();
+                  }
+                } catch {
+                  alert('Invalid JSON format. Use the JSON file from Export JSON.');
+                }
+              }}
+              className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg text-sm font-medium"
+            >
+              Replace All
+            </button>
+          )}
           <button
             onClick={onClose}
             className="px-4 py-2 bg-surface-hover text-text-muted rounded-lg text-sm"

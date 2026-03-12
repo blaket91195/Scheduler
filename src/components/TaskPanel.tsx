@@ -13,7 +13,7 @@ interface Props {
   bulkUpdateTasks: (ids: string[], updates: Partial<Task>) => Promise<void>;
   bulkDeleteTasks: (ids: string[]) => Promise<void>;
   importTasks: (tasks: Task[]) => Promise<number>;
-  importAll: (data: { tasks?: Task[]; schedule?: ScheduleEntry[]; events?: CalendarEvent[] }) => Promise<void>;
+  importAll: (data: { tasks?: Task[]; schedule?: ScheduleEntry[]; events?: CalendarEvent[] }, replace?: boolean) => Promise<void>;
 }
 
 type SortKey = 'priority' | 'dueDate' | 'category' | 'createdAt' | 'energyLevel';
@@ -454,8 +454,8 @@ export function TaskPanel({
             await importTasks(importedTasks);
             setShowImport(false);
           }}
-          onImportAll={async (data) => {
-            await importAll(data);
+          onImportAll={async (data, replace) => {
+            await importAll(data, replace);
             setShowImport(false);
           }}
           onClose={() => setShowImport(false)}
